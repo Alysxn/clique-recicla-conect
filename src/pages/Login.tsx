@@ -6,15 +6,24 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { signIn } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Login logic will be implemented later
-    console.log("Login attempt:", { email, password });
+    setLoading(true);
+    try {
+      await signIn(email, password);
+    } catch (error) {
+      console.error("Error during login:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -60,14 +69,12 @@ const Login = () => {
                 />
               </div>
 
-              <div className="flex items-center justify-between text-sm">
-                <Link to="/recuperar-senha" className="text-primary hover:underline">
-                  Esqueceu a senha?
-                </Link>
-              </div>
-
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-                Entrar
+              <Button 
+                type="submit" 
+                className="w-full bg-primary hover:bg-primary/90"
+                disabled={loading}
+              >
+                {loading ? "Entrando..." : "Entrar"}
               </Button>
             </form>
 

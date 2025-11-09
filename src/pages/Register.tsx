@@ -7,6 +7,8 @@ import { Card } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -15,13 +17,38 @@ const Register = () => {
     cpf: "",
     password: "",
     confirmPassword: "",
-    userType: "recycler"
+    userType: "recycler" as "recycler" | "agent"
   });
+  const [loading, setLoading] = useState(false);
+  const { signUp } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Registration logic will be implemented later
-    console.log("Register attempt:", formData);
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("As senhas não coincidem");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast.error("A senha deve ter no mínimo 6 caracteres");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await signUp(
+        formData.email,
+        formData.password,
+        formData.name,
+        formData.cpf,
+        formData.userType
+      );
+    } catch (error) {
+      console.error("Error during signup:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -115,7 +142,7 @@ const Register = () => {
                 <Label className="text-foreground font-semibold">Tipo de Conta</Label>
                 <RadioGroup 
                   value={formData.userType}
-                  onValueChange={(value) => setFormData({ ...formData, userType: value })}
+                  onValueChange={(value) => setFormData({ ...formData, userType: value as "recycler" | "agent" })}
                 >
                   <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted/50 transition-colors">
                     <RadioGroupItem value="recycler" id="recycler" />
@@ -135,8 +162,12 @@ const Register = () => {
                 </RadioGroup>
               </div>
 
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-                Criar Conta
+              <Button 
+                type="submit" 
+                className="w-full bg-primary hover:bg-primary/90"
+                disabled={loading}
+              >
+                {loading ? "Criando conta..." : "Criar Conta"}
               </Button>
             </form>
 

@@ -14,7 +14,125 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      collection_points: {
+        Row: {
+          address: string
+          agent_id: string
+          city: string
+          created_at: string | null
+          hours: string
+          id: string
+          materials: string[]
+          name: string
+          phone: string
+          state: string
+          updated_at: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address: string
+          agent_id: string
+          city: string
+          created_at?: string | null
+          hours: string
+          id?: string
+          materials: string[]
+          name: string
+          phone: string
+          state: string
+          updated_at?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string
+          agent_id?: string
+          city?: string
+          created_at?: string | null
+          hours?: string
+          id?: string
+          materials?: string[]
+          name?: string
+          phone?: string
+          state?: string
+          updated_at?: string | null
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_points_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      favorites: {
+        Row: {
+          collection_point_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          collection_point_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          collection_point_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_collection_point_id_fkey"
+            columns: ["collection_point_id"]
+            isOneToOne: false
+            referencedRelation: "collection_points"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          cpf: string
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          updated_at: string | null
+          user_type: Database["public"]["Enums"]["user_type"]
+        }
+        Insert: {
+          cpf: string
+          created_at?: string | null
+          email: string
+          id: string
+          name: string
+          updated_at?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Update: {
+          cpf?: string
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          updated_at?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +141,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_type: "recycler" | "agent"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +268,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_type: ["recycler", "agent"],
+    },
   },
 } as const
