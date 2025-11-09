@@ -14,7 +14,7 @@ const Home = () => {
         className="relative min-h-[600px] flex items-center bg-cover bg-center"
         style={{ backgroundImage: `url(${heroBg})` }}
       >
-        <div className="absolute inset-0 bg-[#6b9b5f]/85" />
+        <div className="absolute inset-0 bg-[#6b9b5f]/50" />
         <div className="container mx-auto px-4 relative z-10 py-20">
           <div className="max-w-2xl">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 text-[#3d2817] leading-tight animate-fade-in">
