@@ -24,6 +24,7 @@ export type Database = {
           id: string
           materials: string[]
           name: string
+          owner_name: string
           phone: string
           state: string
           updated_at: string | null
@@ -38,6 +39,7 @@ export type Database = {
           id?: string
           materials: string[]
           name: string
+          owner_name?: string
           phone: string
           state: string
           updated_at?: string | null
@@ -52,6 +54,7 @@ export type Database = {
           id?: string
           materials?: string[]
           name?: string
+          owner_name?: string
           phone?: string
           state?: string
           updated_at?: string | null
