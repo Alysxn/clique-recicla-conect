@@ -25,6 +25,9 @@ const Header = () => {
             <Link to="/dicas" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
               DICAS & CONTEÚDO
             </Link>
+            <Link to="/collection-points" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+              LOCAIS DE COLETA
+            </Link>
             {user && (
               <Link to="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
                 PAINEL
