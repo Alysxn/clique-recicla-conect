@@ -27,7 +27,7 @@ const CollectionPoints = () => {
   const [selectedPoint, setSelectedPoint] = useState<any | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
+  const itemsPerPage = 9;
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -171,7 +171,6 @@ const CollectionPoints = () => {
 
   const goToPage = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
