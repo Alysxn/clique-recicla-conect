@@ -99,7 +99,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error;
 
       toast.success("Conta criada com sucesso!");
-      navigate("/");
+      
+      // Redirecionar para página de onboarding se for agente
+      if (userType === "agent") {
+        navigate("/agent-onboarding");
+      } else {
+        navigate("/");
+      }
     } catch (error: any) {
       toast.error(error.message || "Erro ao criar conta");
       throw error;
