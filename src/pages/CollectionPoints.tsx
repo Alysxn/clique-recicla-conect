@@ -5,17 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { MapPin, Search, Clock, Phone, Heart } from "lucide-react";
+import { MapPin, Search, Clock, Phone, Heart, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const CollectionPoints = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [collectionPoints, setCollectionPoints] = useState<any[]>([]);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCollectionPoints();
@@ -94,6 +97,40 @@ const CollectionPoints = () => {
     }
   };
 
+  const saveCurrentLocation = async () => {
+    if (!user) {
+      toast.error("Faça login para salvar locais");
+      navigate("/login");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("collection_points")
+        .insert({
+          name: "Manaus",
+          address: "Centro, Manaus",
+          city: "Manaus",
+          state: "AM",
+          phone: "(92) 3000-0000",
+          hours: "Seg-Sex: 8h-18h",
+          materials: ["Papel", "Plástico", "Metal", "Vidro"],
+          agent_id: user.id,
+        });
+
+      if (error) throw error;
+
+      toast.success("Local salvo com sucesso!");
+      await fetchCollectionPoints();
+    } catch (error: any) {
+      toast.error("Erro ao salvar local");
+      console.error(error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const filteredPoints = collectionPoints.filter(point =>
     point.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     point.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -116,9 +153,38 @@ const CollectionPoints = () => {
           </div>
         </section>
 
-        {/* Search Section */}
+        {/* Map Section */}
         <section className="py-12 bg-muted/30">
           <div className="container mx-auto px-4">
+            <Card className="p-6 shadow-card max-w-4xl mx-auto mb-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-foreground">Mapa de Manaus</h3>
+                  <Button 
+                    onClick={saveCurrentLocation}
+                    disabled={saving}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    {saving ? "Salvando..." : "Salvar local atual"}
+                  </Button>
+                </div>
+                <div className="w-full aspect-video rounded-lg overflow-hidden">
+                  <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d127493.9865625278!2d-60.049505120047954!3d-3.0444874803704414!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x926c1bc8b37647b7%3A0x2b485c9ff765a9cc!2sManaus%2C%20AM!5e0!3m2!1spt-BR!2sbr!4v1764284948719!5m2!1spt-BR!2sbr" 
+                    width="100%" 
+                    height="100%" 
+                    style={{ border: 0 }} 
+                    allowFullScreen 
+                    loading="lazy" 
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Mapa de Manaus"
+                  />
+                </div>
+              </div>
+            </Card>
+
+            {/* Search Section */}
             <Card className="p-6 shadow-card max-w-4xl mx-auto">
               <div className="flex gap-4">
                 <div className="relative flex-1">
