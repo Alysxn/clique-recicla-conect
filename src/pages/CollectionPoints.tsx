@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 const CollectionPoints = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [collectionPoints, setCollectionPoints] = useState<any[]>([]);
+  const [savedPoints, setSavedPoints] = useState<any[]>([]);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -47,11 +48,12 @@ const CollectionPoints = () => {
 
     const { data, error } = await supabase
       .from("favorites")
-      .select("collection_point_id")
+      .select("collection_point_id, collection_points(*)")
       .eq("user_id", user.id);
 
     if (!error && data) {
       setFavorites(new Set(data.map(fav => fav.collection_point_id)));
+      setSavedPoints(data.map(fav => fav.collection_points).filter(Boolean));
     }
   };
 
@@ -76,6 +78,7 @@ const CollectionPoints = () => {
         const newFavorites = new Set(favorites);
         newFavorites.delete(pointId);
         setFavorites(newFavorites);
+        setSavedPoints(savedPoints.filter(p => p.id !== pointId));
         toast.success("Removido dos favoritos");
       }
     } else {
@@ -92,6 +95,13 @@ const CollectionPoints = () => {
         const newFavorites = new Set(favorites);
         newFavorites.add(pointId);
         setFavorites(newFavorites);
+        
+        // Add to saved points list
+        const point = collectionPoints.find(p => p.id === pointId);
+        if (point) {
+          setSavedPoints([...savedPoints, point]);
+        }
+        
         toast.success("Adicionado aos favoritos!");
       }
     }
@@ -203,6 +213,63 @@ const CollectionPoints = () => {
             </Card>
           </div>
         </section>
+
+        {/* Saved Collection Points */}
+        {user && savedPoints.length > 0 && (
+          <section className="py-12 bg-muted/10">
+            <div className="container mx-auto px-4">
+              <h2 className="text-3xl font-bold mb-8 text-foreground">
+                Locais de Coleta Salvos ({savedPoints.length})
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {savedPoints.map((point) => (
+                  <Card key={point.id} className="p-6 shadow-card hover:shadow-xl transition-shadow relative border-primary/20">
+                    <button
+                      onClick={() => toggleFavorite(point.id)}
+                      className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors"
+                    >
+                      <Heart className="h-5 w-5 fill-red-500 text-red-500" />
+                    </button>
+
+                    <h3 className="text-xl font-bold text-foreground mb-4 pr-8">{point.name}</h3>
+                    
+                    <div className="space-y-3 mb-4">
+                      <div className="flex items-start gap-2 text-muted-foreground">
+                        <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                        <div className="text-sm">
+                          <p>{point.address}</p>
+                          <p>{point.city} - {point.state}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Clock className="h-5 w-5 flex-shrink-0" />
+                        <span className="text-sm">{point.hours}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Phone className="h-5 w-5 flex-shrink-0" />
+                        <span className="text-sm">{point.phone}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="border-t pt-4">
+                      <p className="text-sm font-semibold text-foreground mb-2">Materiais aceitos:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {point.materials.map((material: string, index: number) => (
+                          <Badge key={index} variant="secondary" className="bg-primary/10 text-primary">
+                            {material}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Collection Points List */}
         <section className="py-12">
