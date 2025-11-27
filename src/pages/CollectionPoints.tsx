@@ -25,8 +25,9 @@ const CollectionPoints = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<any | null>(null);
-  const [agentName, setAgentName] = useState<string>("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -150,21 +151,8 @@ const CollectionPoints = () => {
     }
   };
 
-  const fetchAgentInfo = async (agentId: string) => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("name")
-      .eq("id", agentId)
-      .single();
-
-    if (!error && data) {
-      setAgentName(data.name);
-    }
-  };
-
   const handleCardClick = (point: any) => {
     setSelectedPoint(point);
-    fetchAgentInfo(point.agent_id);
     setDialogOpen(true);
   };
 
@@ -174,6 +162,17 @@ const CollectionPoints = () => {
     point.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
     point.materials.some((m: string) => m.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // Paginação
+  const totalPages = Math.ceil(filteredPoints.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPoints = filteredPoints.slice(startIndex, endIndex);
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -301,6 +300,43 @@ const CollectionPoints = () => {
                   </Card>
                 ))}
               </div>
+
+              {/* Paginação */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-8">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    Anterior
+                  </Button>
+                  
+                  <div className="flex gap-2">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => goToPage(page)}
+                        className={currentPage === page ? "bg-primary" : ""}
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    Próxima
+                  </Button>
+                </div>
+              )}
             </div>
           </section>
         )}
@@ -326,7 +362,7 @@ const CollectionPoints = () => {
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredPoints.map((point) => (
+                {currentPoints.map((point) => (
                   <Card 
                     key={point.id} 
                     className="p-6 shadow-card hover:shadow-xl transition-shadow relative cursor-pointer"
@@ -423,7 +459,7 @@ const CollectionPoints = () => {
                   <User className="h-5 w-5 text-primary" />
                   <div>
                     <p className="text-sm font-semibold">Responsável</p>
-                    <p className="text-base">{agentName}</p>
+                    <p className="text-base">{selectedPoint.owner_name}</p>
                   </div>
                 </div>
               </Card>
