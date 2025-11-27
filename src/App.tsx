@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Tips from "./pages/Tips";
 import CollectionPoints from "./pages/CollectionPoints";
+import AgentOnboarding from "./pages/AgentOnboarding";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/sobre" element={<About />} />
             <Route path="/dicas" element={<Tips />} />
             <Route path="/locais" element={<CollectionPoints />} />
+            <Route path="/agent-onboarding" element={<AgentOnboarding />} />
             <Route path="/login" element={<Login />} />
             <Route path="/cadastro" element={<Register />} />
             <Route path="/dashboard" element={<Dashboard />} />
