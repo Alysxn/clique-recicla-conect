@@ -9,9 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { MapPin, Heart, Plus, Trash2, Edit } from "lucide-react";
+import { MapPin, Heart, Plus, Trash2, Edit, Clock, Phone, User } from "lucide-react";
 
 const Dashboard = () => {
   const { user, userType, loading } = useAuth();
@@ -19,6 +25,8 @@ const Dashboard = () => {
   const [collectionPoints, setCollectionPoints] = useState<any[]>([]);
   const [favorites, setFavorites] = useState<any[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedPoint, setSelectedPoint] = useState<any | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -135,6 +143,11 @@ const Dashboard = () => {
       toast.success("Favorito removido!");
       fetchFavorites();
     }
+  };
+
+  const handleCardClick = (point: any) => {
+    setSelectedPoint(point);
+    setDialogOpen(true);
   };
 
   if (loading) {
@@ -275,7 +288,11 @@ const Dashboard = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {collectionPoints.map((point) => (
-                  <Card key={point.id} className="p-6 shadow-card">
+                  <Card 
+                    key={point.id} 
+                    className="p-6 shadow-card cursor-pointer hover:shadow-xl transition-shadow"
+                    onClick={() => handleCardClick(point)}
+                  >
                     <h3 className="text-xl font-bold mb-3">{point.name}</h3>
                     <div className="space-y-2 mb-4">
                       <div className="flex items-start gap-2">
@@ -299,7 +316,10 @@ const Dashboard = () => {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => handleDeleteCollectionPoint(point.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteCollectionPoint(point.id);
+                      }}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Excluir
@@ -326,7 +346,11 @@ const Dashboard = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {favorites.map((fav: any) => (
-                  <Card key={fav.id} className="p-6 shadow-card">
+                  <Card 
+                    key={fav.id} 
+                    className="p-6 shadow-card cursor-pointer hover:shadow-xl transition-shadow"
+                    onClick={() => handleCardClick(fav.collection_points)}
+                  >
                     <h3 className="text-xl font-bold mb-3">{fav.collection_points.name}</h3>
                     <div className="space-y-2 mb-4">
                       <div className="flex items-start gap-2">
@@ -350,7 +374,10 @@ const Dashboard = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleRemoveFavorite(fav.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveFavorite(fav.id);
+                      }}
                     >
                       <Heart className="h-4 w-4 mr-2" />
                       Remover
@@ -364,6 +391,84 @@ const Dashboard = () => {
       </main>
 
       <Footer />
+
+      {/* Detail Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl text-foreground">{selectedPoint?.name}</DialogTitle>
+          </DialogHeader>
+          
+          {selectedPoint && (
+            <div className="space-y-6">
+              {/* Image Placeholder */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                  <span className="text-muted-foreground">Imagem 1</span>
+                </div>
+                <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                  <span className="text-muted-foreground">Imagem 2</span>
+                </div>
+                <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                  <span className="text-muted-foreground">Imagem 3</span>
+                </div>
+                <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                  <span className="text-muted-foreground">Imagem 4</span>
+                </div>
+              </div>
+
+              {/* Details */}
+              <Card className="p-6 space-y-4">
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold">Endereço</p>
+                    <p className="text-base">{selectedPoint.address}</p>
+                    <p className="text-base">{selectedPoint.city} - {selectedPoint.state}</p>
+                    {selectedPoint.zip_code && <p className="text-sm text-muted-foreground">CEP: {selectedPoint.zip_code}</p>}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold">Horário de Funcionamento</p>
+                    <p className="text-base">{selectedPoint.hours}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Phone className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold">Contato</p>
+                    <p className="text-base">{selectedPoint.phone}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <User className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold">Responsável</p>
+                    <p className="text-base">{selectedPoint.owner_name}</p>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Materials */}
+              <div>
+                <p className="text-lg font-semibold mb-3">Materiais Aceitos:</p>
+                <div className="flex flex-wrap gap-2">
+                  {selectedPoint.materials.map((material: string, index: number) => (
+                    <Badge key={index} variant="secondary" className="bg-primary/10 text-primary text-base px-3 py-1">
+                      {material}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
