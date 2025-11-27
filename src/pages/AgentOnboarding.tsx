@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ const AgentOnboarding = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -277,9 +278,18 @@ const AgentOnboarding = () => {
                     </div>
                   ))}
                 </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
                 <Button
                   type="button"
                   variant="secondary"
+                  onClick={() => fileInputRef.current?.click()}
                   className="w-full mt-2 bg-eco-green-dark text-white hover:bg-eco-green"
                 >
                   UPLOAD
