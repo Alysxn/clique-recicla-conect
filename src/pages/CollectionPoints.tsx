@@ -3,9 +3,15 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { MapPin, Search, Clock, Phone, Heart, Save } from "lucide-react";
+import { MapPin, Search, Clock, Phone, Heart, Save, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -18,6 +24,9 @@ const CollectionPoints = () => {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [selectedPoint, setSelectedPoint] = useState<any | null>(null);
+  const [agentName, setAgentName] = useState<string>("");
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -141,6 +150,24 @@ const CollectionPoints = () => {
     }
   };
 
+  const fetchAgentInfo = async (agentId: string) => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("name")
+      .eq("id", agentId)
+      .single();
+
+    if (!error && data) {
+      setAgentName(data.name);
+    }
+  };
+
+  const handleCardClick = (point: any) => {
+    setSelectedPoint(point);
+    fetchAgentInfo(point.agent_id);
+    setDialogOpen(true);
+  };
+
   const filteredPoints = collectionPoints.filter(point =>
     point.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     point.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -224,10 +251,17 @@ const CollectionPoints = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {savedPoints.map((point) => (
-                  <Card key={point.id} className="p-6 shadow-card hover:shadow-xl transition-shadow relative border-primary/20">
+                  <Card 
+                    key={point.id} 
+                    className="p-6 shadow-card hover:shadow-xl transition-shadow relative border-primary/20 cursor-pointer"
+                    onClick={() => handleCardClick(point)}
+                  >
                     <button
-                      onClick={() => toggleFavorite(point.id)}
-                      className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(point.id);
+                      }}
+                      className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors z-10"
                     >
                       <Heart className="h-5 w-5 fill-red-500 text-red-500" />
                     </button>
@@ -293,11 +327,18 @@ const CollectionPoints = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredPoints.map((point) => (
-                  <Card key={point.id} className="p-6 shadow-card hover:shadow-xl transition-shadow relative">
+                  <Card 
+                    key={point.id} 
+                    className="p-6 shadow-card hover:shadow-xl transition-shadow relative cursor-pointer"
+                    onClick={() => handleCardClick(point)}
+                  >
                     {user && (
                       <button
-                        onClick={() => toggleFavorite(point.id)}
-                        className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(point.id);
+                        }}
+                        className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors z-10"
                       >
                         <Heart
                           className={`h-5 w-5 ${
@@ -350,6 +391,88 @@ const CollectionPoints = () => {
       </main>
 
       <Footer />
+
+      {/* Detail Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl text-foreground">{selectedPoint?.name}</DialogTitle>
+          </DialogHeader>
+          
+          {selectedPoint && (
+            <div className="space-y-6">
+              {/* Image Placeholder - As images will be added later */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                  <span className="text-muted-foreground">Imagem 1</span>
+                </div>
+                <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                  <span className="text-muted-foreground">Imagem 2</span>
+                </div>
+                <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                  <span className="text-muted-foreground">Imagem 3</span>
+                </div>
+                <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                  <span className="text-muted-foreground">Imagem 4</span>
+                </div>
+              </div>
+
+              {/* Owner Info */}
+              <Card className="p-4 bg-muted/50">
+                <div className="flex items-center gap-2 text-foreground">
+                  <User className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold">Responsável</p>
+                    <p className="text-base">{agentName}</p>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Location Info */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg text-foreground">Informações de Contato</h3>
+                
+                <div className="flex items-start gap-3 text-muted-foreground">
+                  <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0 text-primary" />
+                  <div className="text-sm">
+                    <p className="font-medium text-foreground">{selectedPoint.address}</p>
+                    <p>{selectedPoint.city} - {selectedPoint.state}</p>
+                    {selectedPoint.zip_code && <p>CEP: {selectedPoint.zip_code}</p>}
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <Clock className="h-5 w-5 flex-shrink-0 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Horário de Funcionamento</p>
+                    <p className="text-sm">{selectedPoint.hours}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <Phone className="h-5 w-5 flex-shrink-0 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Telefone</p>
+                    <p className="text-sm">{selectedPoint.phone}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Materials */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg text-foreground">Materiais Aceitos</h3>
+                <div className="flex flex-wrap gap-2">
+                  {selectedPoint.materials.map((material: string, index: number) => (
+                    <Badge key={index} className="bg-primary/10 text-primary text-sm px-3 py-1">
+                      {material}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
