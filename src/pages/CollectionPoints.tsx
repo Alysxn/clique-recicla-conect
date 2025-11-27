@@ -361,66 +361,105 @@ const CollectionPoints = () => {
                 </p>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {currentPoints.map((point) => (
-                  <Card 
-                    key={point.id} 
-                    className="p-6 shadow-card hover:shadow-xl transition-shadow relative cursor-pointer"
-                    onClick={() => handleCardClick(point)}
-                  >
-                    {user && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(point.id);
-                        }}
-                        className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors z-10"
-                      >
-                        <Heart
-                          className={`h-5 w-5 ${
-                            favorites.has(point.id)
-                              ? "fill-red-500 text-red-500"
-                              : "text-muted-foreground"
-                          }`}
-                        />
-                      </button>
-                    )}
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {currentPoints.map((point) => (
+                    <Card 
+                      key={point.id} 
+                      className="p-6 shadow-card hover:shadow-xl transition-shadow relative cursor-pointer"
+                      onClick={() => handleCardClick(point)}
+                    >
+                      {user && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(point.id);
+                          }}
+                          className="absolute top-4 right-4 p-2 rounded-full hover:bg-muted transition-colors z-10"
+                        >
+                          <Heart
+                            className={`h-5 w-5 ${
+                              favorites.has(point.id)
+                                ? "fill-red-500 text-red-500"
+                                : "text-muted-foreground"
+                            }`}
+                          />
+                        </button>
+                      )}
 
-                    <h3 className="text-xl font-bold text-foreground mb-4 pr-8">{point.name}</h3>
-                    
-                    <div className="space-y-3 mb-4">
-                      <div className="flex items-start gap-2 text-muted-foreground">
-                        <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                        <div className="text-sm">
-                          <p>{point.address}</p>
-                          <p>{point.city} - {point.state}</p>
+                      <h3 className="text-xl font-bold text-foreground mb-4 pr-8">{point.name}</h3>
+                      
+                      <div className="space-y-3 mb-4">
+                        <div className="flex items-start gap-2 text-muted-foreground">
+                          <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                          <div className="text-sm">
+                            <p>{point.address}</p>
+                            <p>{point.city} - {point.state}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Clock className="h-5 w-5 flex-shrink-0" />
+                          <span className="text-sm">{point.hours}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Phone className="h-5 w-5 flex-shrink-0" />
+                          <span className="text-sm">{point.phone}</span>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock className="h-5 w-5 flex-shrink-0" />
-                        <span className="text-sm">{point.hours}</span>
+                      <div className="border-t pt-4">
+                        <p className="text-sm font-semibold text-foreground mb-2">Materiais aceitos:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {point.materials.map((material: string, index: number) => (
+                            <Badge key={index} variant="secondary" className="bg-primary/10 text-primary">
+                              {material}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                      
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Phone className="h-5 w-5 flex-shrink-0" />
-                        <span className="text-sm">{point.phone}</span>
-                      </div>
-                    </div>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Paginação */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center items-center gap-2 mt-8">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      Anterior
+                    </Button>
                     
-                    <div className="border-t pt-4">
-                      <p className="text-sm font-semibold text-foreground mb-2">Materiais aceitos:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {point.materials.map((material: string, index: number) => (
-                          <Badge key={index} variant="secondary" className="bg-primary/10 text-primary">
-                            {material}
-                          </Badge>
-                        ))}
-                      </div>
+                    <div className="flex gap-2">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => goToPage(page)}
+                          className={currentPage === page ? "bg-primary" : ""}
+                        >
+                          {page}
+                        </Button>
+                      ))}
                     </div>
-                  </Card>
-                ))}
-              </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      Próxima
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>
